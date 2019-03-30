@@ -16,6 +16,7 @@ import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.collection.LLRBNode
 
 class QuestionDetailListAdapter(context: Context, private val mQustion: Question) : BaseAdapter() {
@@ -26,9 +27,8 @@ class QuestionDetailListAdapter(context: Context, private val mQustion: Question
 
     private var mLayoutInflater: LayoutInflater? = null
     private var alreadyFavoriteFlg = false
-
-    //    private lateinit var mAuth: FirebaseAuth
-//    private lateinit var mDataBaseReference: DatabaseReference
+    private lateinit var mAuth: FirebaseAuth
+    private lateinit var mDataBaseReference: DatabaseReference
 
 
     init {
@@ -78,14 +78,18 @@ class QuestionDetailListAdapter(context: Context, private val mQustion: Question
             val favoriteBtnView = convertView.findViewById<View>(R.id.favorite_button) as Button
             favoriteBtnView.visibility = View.INVISIBLE
 
-            val user = FirebaseAuth.getInstance().currentUser
-//            val userRef = mDataBaseReference.child(FavoritePATH).child(user!!.uid)
+            // FirebaseAuthのオブジェクトを取得する
+            mAuth = FirebaseAuth.getInstance()
+            val user = mAuth.currentUser
+            mDataBaseReference = FirebaseDatabase.getInstance().reference
+            val userRef = mDataBaseReference.child(FavoritePATH).child(user!!.uid)
+
             if (user != null) {
                 favoriteBtnView.visibility = View.VISIBLE
             }
 
             //お気に入り追加/解除
-            excuteFavorite(favoriteBtnView, user)
+            excuteFavorite(favoriteBtnView, user,mQustion)
 
             val bytes = mQustion.imageBytes
             if (bytes.isNotEmpty()) {
@@ -113,15 +117,15 @@ class QuestionDetailListAdapter(context: Context, private val mQustion: Question
     }
 
     //お気に入り追加/解除
-    private fun excuteFavorite(favoriteBtnView: Button, user: FirebaseUser?) {
+    private fun excuteFavorite(favoriteBtnView: Button, user: FirebaseUser,question:Question) {
         favoriteBtnView.setOnClickListener() {
             if (alreadyFavoriteFlg) {
                 //お気に入り→非お気に入り
                 favoriteBtnView.text = "お気に入り追加"
                 favoriteBtnView.setBackgroundColor(Color.LTGRAY)
 
-                //FireBaseにお気に入り情報を追加
-//                addFavorite(user)
+                //FireBase上のお気に入り情報を削除
+                deleteFavorite(user,question)
 
                 alreadyFavoriteFlg = false
             } else {
@@ -129,36 +133,29 @@ class QuestionDetailListAdapter(context: Context, private val mQustion: Question
                 favoriteBtnView.text = "お気に入り解除"
                 favoriteBtnView.setBackgroundColor(Color.GREEN)
 
-                //FireBase上のお気に入り情報を削除
-//                deleteFavorite(user)
+                //FireBaseにお気に入り情報を追加
+                addFavorite(user,question)
 
                 alreadyFavoriteFlg = true
             }
         }
     }
 
-//    private fun addFavorite(user: FirebaseUser?) {
-//        //FireBaseにお気に入り情報を追加
-//        val uid = user.uid
-//        val questionUid = mDataBaseReference.child(ContentsPATH).child(user.uid).toString()
-//        val userRef = mDataBaseReference.child(UsersPATH).child(user.uid)
-//        val data = HashMap<String, String>()
-//
-//        data["uid"] = uid
-//        data["questionUid"] = questionUid
-//        userRef.setValue(data)
-//    }
+    private fun addFavorite(user: FirebaseUser,question:Question) {
+        //FireBaseにお気に入り情報を追加
+        val uid = user.uid
+        val questionUid = mDataBaseReference.child(ContentsPATH).child(user.uid).toString()
+        val userRef = mDataBaseReference.child(UsersPATH).child(user.uid)
+        val data = HashMap<String, String>()
 
-//    private fun deleteFavorite(user: FirebaseUser?) {
-//        //FireBase上のお気に入り情報を削除
-//        val uid = user.uid
-//        val questionUid = mDataBaseReference.child(ContentsPATH).child(user.uid).toString()
-//        val userRef = mDataBaseReference.child(UsersPATH).child(user.uid)
-//        val data = HashMap<String, String>()
-//
-//        data["uid"] = uid
-//        data["questionUid"] = questionUid
-//        userRef.setValue(data)
-//    }
+        data["uid"] = uid
+        data["questionUid"] = questionUid
+        userRef.setValue(data)
+    }
+
+    private fun deleteFavorite(user: FirebaseUser,question:Question) {
+        //FireBase上のお気に入り情報を削除
+        mDataBaseReference.child(UsersPATH).child(user.uid).child(question.questionUid).removeValue()
+    }
 
 }
