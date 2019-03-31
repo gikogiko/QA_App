@@ -29,11 +29,5 @@
             android:id="@+id/nameTextView"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true" />
-    <Button
-            android:text="お気に入り追加"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/favorite_button"
-            android:layout_marginTop="16dp" android:layout_alignStart="@+id/imageView"
-            android:layout_below="@+id/imageView" android:layout_marginStart="16dp"/>
 
 </RelativeLayout>
