@@ -25,7 +25,6 @@ import java.util.HashMap
 import com.google.firebase.database.ValueEventListener
 
 
-
 class QuestionDetailActivity : AppCompatActivity() {
 
     private lateinit var mQuestion: Question
@@ -94,36 +93,35 @@ class QuestionDetailActivity : AppCompatActivity() {
         //ログイン時のみ「お気に入り追加ボタンを表示」
         if (!isLogin(user)) {
             favorite_button.visibility = View.INVISIBLE
-        }else{
+        } else {
             //お気に入りデータ確認
             val dataBaseReference = FirebaseDatabase.getInstance().reference
-            dataBaseReference.child(UsersPATH).child(FavoritePATH).child(user!!.uid).child(mQuestion.questionUid).addListenerForSingleValueEvent(
-                object : ValueEventListener {
-                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+            dataBaseReference.child(UsersPATH).child(FavoritePATH).child(user!!.uid).child(mQuestion.questionUid)
+                .addListenerForSingleValueEvent(
+                    object : ValueEventListener {
+                        override fun onDataChange(dataSnapshot: DataSnapshot) {
 
-                        //val questionUid = dataSnapshot.child(UsersPATH).child(FavoritePATH).child(user!!.uid).child(mQuestion.questionUid)
+                            val questionUid = dataSnapshot.getValue()
+                            if (questionUid != null) {
+                                //ボタンの表示を「お気に入り追加済み」の状態に変更
+                                favorite_button.text = "お気に入り解除"
+                                favorite_button.setBackgroundColor(Color.GREEN)
 
-                        val questionUid =  dataSnapshot.getValue()
-                        if(questionUid != null){
-                            //ボタンの表示を「お気に入り追加済み」の状態に変更
-                            favorite_button.text = "お気に入り解除"
-                            favorite_button.setBackgroundColor(Color.GREEN)
-
-                            mFavoriteFlag = true
+                                mFavoriteFlag = true
+                            }
                         }
-                    }
 
-                    override fun onCancelled(databaseError: DatabaseError) {
+                        override fun onCancelled(databaseError: DatabaseError) {
 
-                    }
-                })
-
+                        }
+                    })
         }
 
         favorite_button.setOnClickListener() {
             // ログイン済みのユーザーを取得する
             val dataBaseReference = FirebaseDatabase.getInstance().reference
-            mUserRef = dataBaseReference.child(UsersPATH).child(FavoritePATH).child(user!!.uid).child(mQuestion.questionUid)
+            mUserRef =
+                dataBaseReference.child(UsersPATH).child(FavoritePATH).child(user!!.uid).child(mQuestion.questionUid)
 
             if (mFavoriteFlag) {
                 //お気に入りを解除
@@ -131,7 +129,8 @@ class QuestionDetailActivity : AppCompatActivity() {
                 favorite_button.setBackgroundColor(Color.LTGRAY)
 
                 //FireBase上の対象の質問を削除
-                dataBaseReference.child(UsersPATH).child(FavoritePATH).child(user!!.uid).child(mQuestion.questionUid).removeValue()
+                dataBaseReference.child(UsersPATH).child(FavoritePATH).child(user!!.uid).child(mQuestion.questionUid)
+                    .removeValue()
 
                 //mFavoriteFlagをfalseへ
                 mFavoriteFlag = false
@@ -156,7 +155,6 @@ class QuestionDetailActivity : AppCompatActivity() {
 
         fab.setOnClickListener {
             // ログイン済みのユーザーを取得する
-
 
             if (isLogin(user)) {
                 // ログインしていなければログイン画面に遷移させる

@@ -19,7 +19,7 @@ import com.google.firebase.database.*
 
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity(),NavigationView.OnNavigationItemSelectedListener {
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var mToolbar: Toolbar
     private var mGenre = 0
@@ -59,8 +59,10 @@ class MainActivity : AppCompatActivity(),NavigationView.OnNavigationItemSelected
                 }
             }
 
-            val question = Question(title, body, name, uid, dataSnapshot.key ?: "",
-                mGenre, bytes, answerArrayList)
+            val question = Question(
+                title, body, name, uid, dataSnapshot.key ?: "",
+                mGenre, bytes, answerArrayList
+            )
             mQuestionArrayList.add(question)
             mAdapter.notifyDataSetChanged()
         }
@@ -141,6 +143,21 @@ class MainActivity : AppCompatActivity(),NavigationView.OnNavigationItemSelected
         val navigationView = findViewById<NavigationView>(R.id.nav_view)
         navigationView.setNavigationItemSelectedListener(this)
 
+        //TODO
+        ////////////////////////////////////////////////////////////////////////////////////////////
+        //ログイン切り替え後、Main_Activityを開きなおさないと処理が走らない
+        //Main_Activity画面左上のメニューボタン押下時に処理が走るように、リスナーを追加化してそこに実装か。
+        ////////////////////////////////////////////////////////////////////////////////////////////
+
+        //ログイン時のみお気に入り一覧へのリンクを表示
+        val navigationDrawer = findViewById<DrawerLayout>(R.id.drawer_layout)
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+
+            // ログインしていなければお気に入りへのリンクを非表示にする
+            navigationView.menu.findItem(R.id.nav_favorite).isVisible = false
+        }
+
         // Firebase
         mDatabaseReference = FirebaseDatabase.getInstance().reference
 
@@ -160,6 +177,7 @@ class MainActivity : AppCompatActivity(),NavigationView.OnNavigationItemSelected
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu this adds items to the action bar if it is present.
+
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
@@ -191,9 +209,6 @@ class MainActivity : AppCompatActivity(),NavigationView.OnNavigationItemSelected
         } else if (id == R.id.nav_compter) {
             mToolbar.title = "コンピューター"
             mGenre = 4
-        } else if (id == R.id.nav_favorite) {
-            mToolbar.title = "お気に入り"
-            mGenre = 5
         }
 
         val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
