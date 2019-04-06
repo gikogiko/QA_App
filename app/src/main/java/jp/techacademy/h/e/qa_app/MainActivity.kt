@@ -140,24 +140,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         drawer.addDrawerListener(toggle)
         toggle.syncState()
 
-        val navigationView = findViewById<NavigationView>(R.id.nav_view)
-        navigationView.setNavigationItemSelectedListener(this)
-
-        //TODO
-        ////////////////////////////////////////////////////////////////////////////////////////////
-        //ログイン切り替え後、Main_Activityを開きなおさないと処理が走らない
-        //Main_Activity画面左上のメニューボタン押下時に処理が走るように、リスナーを追加化してそこに実装か。
-        ////////////////////////////////////////////////////////////////////////////////////////////
-
-        //ログイン時のみお気に入り一覧へのリンクを表示
-        val navigationDrawer = findViewById<DrawerLayout>(R.id.drawer_layout)
-        val user = FirebaseAuth.getInstance().currentUser
-        if (user == null) {
-
-            // ログインしていなければお気に入りへのリンクを非表示にする
-            navigationView.menu.findItem(R.id.nav_favorite).isVisible = false
-        }
-
         // Firebase
         mDatabaseReference = FirebaseDatabase.getInstance().reference
 
@@ -173,6 +155,24 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             intent.putExtra("question", mQuestionArrayList[position])
             startActivity(intent)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        val navigationView = findViewById<NavigationView>(R.id.nav_view)
+        navigationView.setNavigationItemSelectedListener(this)
+
+        //ログイン時のみお気に入り一覧へのリンクを表示
+        val navigationDrawer = findViewById<DrawerLayout>(R.id.drawer_layout)
+        val user = FirebaseAuth.getInstance().currentUser
+        navigationView.menu.findItem(R.id.nav_favorite).isVisible = true
+        if (user == null) {
+
+            // ログインしていなければお気に入りへのリンクを非表示にする
+            navigationView.menu.findItem(R.id.nav_favorite).isVisible = false
+        }
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -209,7 +209,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         } else if (id == R.id.nav_compter) {
             mToolbar.title = "コンピューター"
             mGenre = 4
+        }else if (id == R.id.nav_favorite) {
+            val intent = Intent(applicationContext, FavoriteListActivity::class.java)
+            startActivity(intent)
         }
+
 
         val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
         drawer.closeDrawer(GravityCompat.START)

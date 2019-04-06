@@ -35,6 +35,8 @@
         </activity>
         <activity android:name=".AnswerSendActivity">
         </activity>
+        <activity android:name=".FavoriteListActivity">
+        </activity>
     </application>
 
 </manifest>
