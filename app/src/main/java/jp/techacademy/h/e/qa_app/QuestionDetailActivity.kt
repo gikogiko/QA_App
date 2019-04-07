@@ -72,6 +72,25 @@ class QuestionDetailActivity : AppCompatActivity() {
         }
     }
 
+    private val mFavoriteListener = object : ChildEventListener {
+        override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
+            val questionUid = dataSnapshot.getValue()
+            if (questionUid != null) {
+                //ボタンの表示を「お気に入り追加済み」の状態に変更
+                favorite_button.text = "お気に入り解除"
+                favorite_button.setBackgroundColor(Color.GREEN)
+
+                mFavoriteFlag = true
+            }
+
+        }
+
+        override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
+        override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
+        override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
+        override fun onCancelled(databaseError: DatabaseError) {}
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_question_detail)
@@ -79,6 +98,7 @@ class QuestionDetailActivity : AppCompatActivity() {
         // 渡ってきたQuestionのオブジェクトを保持する
         val extras = intent.extras
         mQuestion = extras.get("question") as Question
+
 
         title = mQuestion.title
 
@@ -96,25 +116,8 @@ class QuestionDetailActivity : AppCompatActivity() {
         } else {
             //お気に入りデータ確認
             val dataBaseReference = FirebaseDatabase.getInstance().reference
-            dataBaseReference.child(UsersPATH).child(FavoritePATH).child(user!!.uid).child(mQuestion.questionUid)
-                .addListenerForSingleValueEvent(
-                    object : ValueEventListener {
-                        override fun onDataChange(dataSnapshot: DataSnapshot) {
-
-                            val questionUid = dataSnapshot.getValue()
-                            if (questionUid != null) {
-                                //ボタンの表示を「お気に入り追加済み」の状態に変更
-                                favorite_button.text = "お気に入り解除"
-                                favorite_button.setBackgroundColor(Color.GREEN)
-
-                                mFavoriteFlag = true
-                            }
-                        }
-
-                        override fun onCancelled(databaseError: DatabaseError) {
-
-                        }
-                    })
+            val favoriteRef = dataBaseReference.child(UsersPATH).child(FavoritePATH).child(user!!.uid).child(mQuestion.questionUid)
+            favoriteRef.addChildEventListener(mFavoriteListener)
         }
 
         favorite_button.setOnClickListener() {

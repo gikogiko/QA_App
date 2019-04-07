@@ -58,7 +58,7 @@ class FavoriteListActivity : AppCompatActivity() {
                         }
 
                         val question = Question(
-                            title, body, name, uid, dataSnapshot.key ?: "",
+                            title, body, name, uid, key ?: "",
                             mGenre, bytes, answerArrayList
                         )
                         mQuestionArrayList.add(question)
