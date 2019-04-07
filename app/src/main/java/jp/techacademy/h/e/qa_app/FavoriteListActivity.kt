@@ -12,7 +12,7 @@ import android.widget.ListView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 
-class FavoriteListActivity :  AppCompatActivity() {
+class FavoriteListActivity : AppCompatActivity() {
 
     private lateinit var mToolbar: Toolbar
     private var mGenre = 0
@@ -27,41 +27,46 @@ class FavoriteListActivity :  AppCompatActivity() {
 
     private val mEventListener = object : ChildEventListener {
         override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-            val map = dataSnapshot.value as Map<String, String>
+            val map = dataSnapshot.value as Map<String, Map<String, String>>
 
-            if(mFavoriteQuestionUidList.contains(dataSnapshot.value.toString())){
-                val title = map["title"] ?: ""
-                val body = map["body"] ?: ""
-                val name = map["name"] ?: ""
-                val uid = map["uid"] ?: ""
-                val imageString = map["image"] ?: ""
-                val bytes =
-                    if (imageString.isNotEmpty()) {
-                        Base64.decode(imageString, Base64.DEFAULT)
-                    } else {
-                        byteArrayOf()
-                    }
+            map.keys.map { key ->
+                if (mFavoriteQuestionUidList.contains(key)) {
+                    if (mFavoriteQuestionUidList.contains(key)) {
+                        val title = map[key]!!["title"] ?: ""
+                        val body = map[key]!!["body"] ?: ""
+                        val name = map[key]!!["name"] ?: ""
+                        val uid = map[key]!!["uid"] ?: ""
+                        val imageString = map[key]!!["image"] ?: ""
+                        val bytes =
+                            if (imageString.isNotEmpty()) {
+                                Base64.decode(imageString, Base64.DEFAULT)
+                            } else {
+                                byteArrayOf()
+                            }
 
-                val answerArrayList = ArrayList<Answer>()
-                val answerMap = map["answers"] as Map<String, String>?
-                if (answerMap != null) {
-                    for (key in answerMap.keys) {
-                        val temp = answerMap[key] as Map<String, String>
-                        val answerBody = temp["body"] ?: ""
-                        val answerName = temp["name"] ?: ""
-                        val answerUid = temp["uid"] ?: ""
-                        val answer = Answer(answerBody, answerName, answerUid, key)
-                        answerArrayList.add(answer)
+                        val answerArrayList = ArrayList<Answer>()
+                        val answerMap = map[key]!!["answers"] as Map<String, Map<String, String>>?
+                        if (answerMap != null) {
+                            for (key in answerMap.keys) {
+                                val temp = answerMap[key] as Map<String, String>
+                                val answerBody = temp["body"] ?: ""
+                                val answerName = temp["name"] ?: ""
+                                val answerUid = temp["uid"] ?: ""
+                                val answer = Answer(answerBody, answerName, answerUid, key)
+                                answerArrayList.add(answer)
+                            }
+                        }
+
+                        val question = Question(
+                            title, body, name, uid, dataSnapshot.key ?: "",
+                            mGenre, bytes, answerArrayList
+                        )
+                        mQuestionArrayList.add(question)
+                        mAdapter.notifyDataSetChanged()
                     }
                 }
-
-                val question = Question(
-                    title, body, name, uid, dataSnapshot.key ?: "",
-                    mGenre, bytes, answerArrayList
-                )
-                mQuestionArrayList.add(question)
-                mAdapter.notifyDataSetChanged()
             }
+
         }
 
         override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
@@ -109,10 +114,16 @@ class FavoriteListActivity :  AppCompatActivity() {
         // ListViewの準備
         mListView = findViewById(R.id.favoriteListView)
         mAdapter = QuestionsListAdapter(this)
+        mQuestionArrayList = ArrayList<Question>()
         mAdapter.notifyDataSetChanged()
 
         mFavoriteListRef = mDatabaseReference.child(ContentsPATH)
         mFavoriteListRef!!.addChildEventListener(mEventListener)
+
+        // 質問のリストをクリアしてから再度Adapterにセットし、AdapterをListViewにセットし直す
+        mQuestionArrayList.clear()
+        mAdapter.setQuestionArrayList(mQuestionArrayList)
+        mListView.adapter = mAdapter
 
         mListView.setOnItemClickListener { parent, view, position, id ->
             // Questionのインスタンスを渡して質問詳細画面を起動する
