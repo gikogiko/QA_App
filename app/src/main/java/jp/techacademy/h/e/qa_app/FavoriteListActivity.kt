@@ -29,7 +29,7 @@ class FavoriteListActivity :  AppCompatActivity() {
         override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
             val map = dataSnapshot.value as Map<String, String>
 
-            if(mFavoriteQuestionUidList.contains(dataSnapshot.key)){
+            if(mFavoriteQuestionUidList.contains(dataSnapshot.value.toString())){
                 val title = map["title"] ?: ""
                 val body = map["body"] ?: ""
                 val name = map["name"] ?: ""
@@ -111,7 +111,7 @@ class FavoriteListActivity :  AppCompatActivity() {
         mAdapter = QuestionsListAdapter(this)
         mAdapter.notifyDataSetChanged()
 
-        mFavoriteListRef = mDatabaseReference.child(ContentsPATH).child(mGenre.toString())
+        mFavoriteListRef = mDatabaseReference.child(ContentsPATH)
         mFavoriteListRef!!.addChildEventListener(mEventListener)
 
         mListView.setOnItemClickListener { parent, view, position, id ->
