@@ -30,6 +30,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var mAdapter: QuestionsListAdapter
 
     private var mGenreRef: DatabaseReference? = null
+    private var mFavoriteRef: DatabaseReference? = null
+
 
     private val mEventListener = object : ChildEventListener {
         override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
@@ -90,6 +92,28 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     mAdapter.notifyDataSetChanged()
                 }
             }
+        }
+
+        override fun onChildRemoved(p0: DataSnapshot) {
+
+        }
+
+        override fun onChildMoved(p0: DataSnapshot, p1: String?) {
+
+        }
+
+        override fun onCancelled(p0: DatabaseError) {
+
+        }
+    }
+
+    private val mFavoriteEventListener = object : ChildEventListener {
+        override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
+            //お気に入り登録している質問の質問idを格納
+            mFavoriteQuestionUidList!!.add(dataSnapshot.getKey().toString())
+        }
+
+        override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
         }
 
         override fun onChildRemoved(p0: DataSnapshot) {
@@ -168,11 +192,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val user = FirebaseAuth.getInstance().currentUser
         navigationView.menu.findItem(R.id.nav_favorite).isVisible = true
         if (user == null) {
-
             // ログインしていなければお気に入りへのリンクを非表示にする
             navigationView.menu.findItem(R.id.nav_favorite).isVisible = false
+        }else {
+            mFavoriteRef = mDatabaseReference.child(UsersPATH).child(FavoritePATH).child(user!!.uid)
+            mFavoriteRef!!.addChildEventListener(mFavoriteEventListener)
         }
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
